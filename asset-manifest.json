@@ -1,0 +1,18 @@
+{
+  "files": {
+    "main.css": "/cake/static/css/main.9b2b2a16.css",
+    "main.js": "/cake/static/js/main.52e1ff77.js",
+    "static/js/453.9c801059.chunk.js": "/cake/static/js/453.9c801059.chunk.js",
+    "static/media/logoBanhKemHannie.jpg": "/cake/static/media/logoBanhKemHannie.10aef91a3fd3daab6065.jpg",
+    "static/media/QR.jpg": "/cake/static/media/QR.37cfcad8dfab8b9fca52.jpg",
+    "static/media/QR_cN.jpg": "/cake/static/media/QR_cN.780e7d6b0cf293081511.jpg",
+    "index.html": "/cake/index.html",
+    "main.9b2b2a16.css.map": "/cake/static/css/main.9b2b2a16.css.map",
+    "main.52e1ff77.js.map": "/cake/static/js/main.52e1ff77.js.map",
+    "453.9c801059.chunk.js.map": "/cake/static/js/453.9c801059.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.9b2b2a16.css",
+    "static/js/main.52e1ff77.js"
+  ]
+}
