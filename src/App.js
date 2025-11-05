@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./components/Home/home";
 import Product from "./components/Product/Product";
 import Contact from "./components/Product/Contact";
@@ -7,16 +7,17 @@ import ProductDetail from "./components/Product/ProductDetail";
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter basename="/cake">
       <Routes>
         <Route path="/" element={<Home />}>
-          <Route path="/products" element={<Product />} />
-          <Route path="/products/:id" element={<ProductDetail />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/bank" element={<Bank />} />
+          <Route index element={<Product />} />
+          <Route path="products" element={<Product />} />
+          <Route path="products/:id" element={<ProductDetail />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="bank" element={<Bank />} />
         </Route>
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 
