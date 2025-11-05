@@ -7,9 +7,10 @@ import {
   PhoneOutlined,
   BankOutlined,
   AppstoreOutlined,
+  BookOutlined,
+  GiftOutlined,
 } from "@ant-design/icons";
 import "./Home.css";
-
 
 const { Header, Content, Footer } = Layout;
 const { Title } = Typography;
@@ -40,19 +41,24 @@ const Home = () => {
           }}
         />
 
-        <Title level={3} style={{ margin: 0 }}>
-          Bánh Kem Hannie
-        </Title>
-
-        {/* MENU */}
         <Menu
           mode="horizontal"
-          style={{ marginLeft: "auto", minWidth: 400 }}
+          style={{ marginLeft: "auto", minWidth: 500 }}
           items={[
             {
               key: "products",
               icon: <AppstoreOutlined />,
               label: <Link to="/products">Sản phẩm</Link>,
+            },
+            {
+              key: "accessories",
+              icon: <GiftOutlined />,
+              label: <Link to="/accessories">Phụ kiện</Link>,
+            },
+            {
+              key: "notes",
+              icon: <BookOutlined />,
+              label: <Link to="/notes">Ghi chú</Link>,
             },
             {
               key: "contact",
@@ -70,7 +76,6 @@ const Home = () => {
 
       {/* ---------------- CONTENT ---------------- */}
       <Content style={{ padding: 24 }}>
-        {/* hiển thị component theo route */}
         <Outlet />
       </Content>
 

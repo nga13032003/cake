@@ -4,6 +4,8 @@ import Product from "./components/Product/Product";
 import Contact from "./components/Product/Contact";
 import Bank from "./components/Product/Bank";
 import ProductDetail from "./components/Product/ProductDetail";
+import Notes from "./components/Product/Note";
+import Accessories from "./components/Product/Accessories";
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
           <Route path="products/:id" element={<ProductDetail />} />
           <Route path="contact" element={<Contact />} />
           <Route path="bank" element={<Bank />} />
+          <Route path="/notes" element={<Notes />} />
+          <Route path="/accessories" element={<Accessories />} />
         </Route>
       </Routes>
     </BrowserRouter>

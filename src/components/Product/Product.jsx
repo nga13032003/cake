@@ -13,6 +13,7 @@ import {
   Col,
   Space,
   Popconfirm,
+  Image,
 } from "antd";
 import {
   PlusOutlined,
@@ -21,6 +22,7 @@ import {
   DeleteOutlined,
   SearchOutlined,
   EditOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import { supabase } from "../../supabaseClient";
 import { useNavigate } from "react-router-dom";
@@ -39,7 +41,7 @@ const Product = () => {
   const BUCKET = "product";
   const navigate = useNavigate();
 
-  // Load product list
+  // ===== FETCH PRODUCTS
   const fetchProducts = async () => {
     let query = supabase.from("Products").select("*");
 
@@ -60,10 +62,9 @@ const Product = () => {
     fetchProducts();
   }, [search]);
 
-  // Upload file to Supabase Storage
+  // ===== Upload ảnh
   const uploadImage = async (file) => {
     const fileName = `${Date.now()}-${file.name}`;
-
     const { error } = await supabase.storage.from(BUCKET).upload(fileName, file);
 
     if (error) {
@@ -79,7 +80,7 @@ const Product = () => {
     return urlData.publicUrl;
   };
 
-  // Xử lý cả Thêm và Sửa
+  // ===== ADD / EDIT
   const handleFinish = async (values) => {
     let imageUrl = editingProduct?.HinhAnh ?? null;
 
@@ -88,7 +89,6 @@ const Product = () => {
     }
 
     if (editingProduct) {
-      // Cập nhật sản phẩm
       const { error } = await supabase
         .from("Products")
         .update({
@@ -99,13 +99,9 @@ const Product = () => {
         })
         .eq("id", editingProduct.id);
 
-      if (error) {
-        message.error("Cập nhật thất bại!");
-      } else {
-        message.success("Cập nhật thành công!");
-      }
+      if (!error) message.success("Cập nhật thành công!");
+      else message.error("Cập nhật thất bại!");
     } else {
-      // Thêm sản phẩm mới
       const { error } = await supabase.from("Products").insert([
         {
           TenSanPham: values.TenSanPham,
@@ -115,14 +111,10 @@ const Product = () => {
         },
       ]);
 
-      if (error) {
-        message.error("Thêm sản phẩm thất bại!");
-      } else {
-        message.success("Thêm thành công!");
-      }
+      if (!error) message.success("Thêm thành công!");
+      else message.error("Thêm thất bại!");
     }
 
-    // Reset form và đóng modal
     form.resetFields();
     setImageFile(null);
     setEditingProduct(null);
@@ -130,15 +122,14 @@ const Product = () => {
     fetchProducts();
   };
 
+  // ===== DELETE
   const handleDelete = async (id) => {
     const { error } = await supabase.from("Products").delete().eq("id", id);
 
-    if (error) {
-      message.error("Xóa thất bại!");
-    } else {
+    if (!error) {
       message.success("Đã xóa!");
       fetchProducts();
-    }
+    } else message.error("Xóa thất bại!");
   };
 
   const uploadProps = {
@@ -181,23 +172,31 @@ const Product = () => {
         {products.map((item) => (
           <Col xs={24} sm={12} md={8} lg={6} key={item.id}>
             <Card
+              className="product-card"
               hoverable
               cover={
-                <img
+                <Image
                   alt={item.TenSanPham}
-                  src={item.HinhAnh || "https://via.placeholder.com/300x200?text=No+Image"}
-                  className="w-full h-56 object-cover"
+                  src={
+                    item.HinhAnh ||
+                    "https://via.placeholder.com/300x200?text=No+Image"
+                  }
+                  height={220}
+                  className="card-img"
+                  preview={{
+                    mask: <EyeOutlined />,
+                  }}
                 />
               }
             >
               <Title level={5} className="truncate mb-1">
                 {item.TenSanPham}
               </Title>
+
               <p className="font-bold text-red-600 mb-3">
                 {item.GIA?.toLocaleString()} VND
               </p>
 
-              {/* Actions */}
               <Space>
                 <Button
                   icon={<EyeOutlined />}
@@ -212,15 +211,23 @@ const Product = () => {
                   className="btn-edit"
                   onClick={() => {
                     setEditingProduct(item);
-                    setImageFile(null); // Reset ảnh khi sửa
-                    form.setFieldsValue({
-                      TenSanPham: item.TenSanPham,
-                      MoTa: item.MoTa,
-                      GIA: item.GIA,
-                    });
+                    setImageFile(null);
+                    form.setFieldsValue({ ...item });
                     setOpen(true);
                   }}
                 />
+
+                {/* DOWNLOAD */}
+                {item.HinhAnh && (
+                  <a
+                    href={item.HinhAnh}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button icon={<DownloadOutlined />} />
+                  </a>
+                )}
 
                 <Popconfirm
                   title="Bạn chắc muốn xóa?"
@@ -236,7 +243,7 @@ const Product = () => {
         ))}
       </Row>
 
-      {/* Modal Thêm / Sửa */}
+      {/* MODAL ADD / EDIT */}
       <Modal
         title={editingProduct ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm"}
         open={open}
@@ -287,7 +294,12 @@ const Product = () => {
                 <img
                   src={editingProduct.HinhAnh}
                   alt="Current"
-                  style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 4 }}
+                  style={{
+                    width: 80,
+                    height: 80,
+                    objectFit: "cover",
+                    borderRadius: 4,
+                  }}
                 />
                 <span style={{ marginLeft: 8, color: "#888" }}>Ảnh hiện tại</span>
               </div>
