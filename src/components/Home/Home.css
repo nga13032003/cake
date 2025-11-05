@@ -1,0 +1,11 @@
+/* desktop default => vẫn hiển thị */
+.header-title {
+  white-space: nowrap;
+}
+
+/* mobile: ẩn chữ */
+@media (max-width: 576px) {
+  .header-title {
+    display: none;
+  }
+}

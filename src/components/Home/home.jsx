@@ -8,6 +8,8 @@ import {
   BankOutlined,
   AppstoreOutlined,
 } from "@ant-design/icons";
+import "./Home.css";
+
 
 const { Header, Content, Footer } = Layout;
 const { Title } = Typography;
