@@ -1,0 +1,91 @@
+.detail-wrapper {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* --- BACK BUTTON --- */
+.btn-back {
+  border: 1px solid #000 !important;
+  color: #000 !important;
+  background: transparent !important;
+  margin-bottom: 16px;
+}
+
+.btn-back:hover {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+/* --- CARD --- */
+.detail-card {
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* --- LAYOUT --- */
+.detail-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+@media (min-width: 992px) {
+  .detail-layout {
+    flex-direction: row;
+  }
+}
+
+/* --- IMAGE --- */
+.detail-image {
+  width: 100%;
+  max-width: 460px;
+  height: 380px;
+  object-fit: cover;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* --- INFO RIGHT --- */
+.detail-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Title */
+.detail-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* Price */
+.detail-price {
+  color: #e02525 !important; 
+  font-weight: 700 !important; 
+  margin-bottom: 16px;
+}
+
+/* Description */
+.detail-desc {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* --- BUTTON EDIT --- */
+.btn-edit {
+  width: fit-content;
+  padding: 8px 16px;
+  background: #000 !important;
+  border-color: #000 !important;
+  color: #fff !important;
+  border-radius: 8px;
+}
+
+.btn-edit:hover {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #000 !important;
+}

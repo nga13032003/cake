@@ -1,0 +1,36 @@
+/* Gói toàn bộ Header */
+.product-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;   /* cách với phần grid bên dưới */
+}
+
+/* Input tìm kiếm nhỏ lại */
+.product-header .search-input {
+  width: 220px !important;   /* điều chỉnh tùy ý */
+}
+
+/* Nút thêm mới */
+.product-header .add-button {
+  border: 1px solid #000;
+  color: #000;
+}
+
+.product-header .add-button:hover {
+  background: #000 !important;
+  color: #fff !important;
+}
+.btn-detail {
+  background-color: #000 !important;
+  border-color: #000 !important;
+  color: #fff !important;
+}
+
+.btn-detail:hover {
+  background-color: #333 !important;
+  border-color: #333 !important;
+  color: #fff !important;
+}
+
