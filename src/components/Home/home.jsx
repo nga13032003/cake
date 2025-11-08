@@ -53,12 +53,12 @@ const Home = () => {
             {
               key: "accessories",
               icon: <GiftOutlined />,
-              label: <Link to="/accessories">Phụ kiện</Link>,
+              label: <Link to="/phukien">Phụ kiện</Link>,
             },
             {
               key: "notes",
               icon: <BookOutlined />,
-              label: <Link to="/notes">Ghi chú</Link>,
+              label: <Link to="/truonghop">Ghi chú</Link>,
             },
             {
               key: "contact",

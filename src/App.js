@@ -5,7 +5,8 @@ import Contact from "./components/Product/Contact";
 import Bank from "./components/Product/Bank";
 import ProductDetail from "./components/Product/ProductDetail";
 import Notes from "./components/Product/Note";
-import Accessories from "./components/Product/Accessories";
+import PhuKien from "./components/Product/PhuKien";
+import TruongHop from "./components/Product/TruongHop";
 
 function App() {
   return (
@@ -18,7 +19,8 @@ function App() {
           <Route path="contact" element={<Contact />} />
           <Route path="bank" element={<Bank />} />
           <Route path="/notes" element={<Notes />} />
-          <Route path="/accessories" element={<Accessories />} />
+          <Route path="/phukien" element={<PhuKien />} />
+          <Route path="/truonghop" element={<TruongHop />} />
         </Route>
       </Routes>
     </BrowserRouter>
