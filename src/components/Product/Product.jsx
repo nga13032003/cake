@@ -14,6 +14,7 @@ import {
   Space,
   Popconfirm,
   Image,
+  Select,
 } from "antd";
 import {
   PlusOutlined,
@@ -29,38 +30,70 @@ import { useNavigate } from "react-router-dom";
 import "./product.css";
 
 const { Title } = Typography;
+const { Option } = Select;
 
 const Product = () => {
   const [products, setProducts] = useState([]);
+  const [types, setTypes] = useState([]);
   const [open, setOpen] = useState(false);
+  const [openTypeModal, setOpenTypeModal] = useState(false);
   const [form] = Form.useForm();
+  const [formType] = Form.useForm();
   const [imageFile, setImageFile] = useState(null);
   const [search, setSearch] = useState("");
   const [editingProduct, setEditingProduct] = useState(null);
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState("ALL");
 
   const BUCKET = "product";
   const navigate = useNavigate();
 
+  // ===== FETCH TYPES
+  const fetchTypes = async () => {
+    const { data, error } = await supabase.from("TypeProducts").select("*").order("id", { ascending: true });
+    if (error) {
+      message.error("Lỗi tải loại sản phẩm");
+    } else {
+      setTypes(data || []);
+    }
+  };
+
   // ===== FETCH PRODUCTS
   const fetchProducts = async () => {
-    let query = supabase.from("Products").select("*");
-
-    if (search.trim() !== "") {
-      query = query.ilike("TenSanPham", `%${search}%`);
-    }
+    // We'll fetch products; filtering by name or type is done client-side for simplicity
+    let query = supabase.from("Products").select("*").order("id", { ascending: false });
 
     const { data, error } = await query;
-
     if (error) {
       message.error("Lỗi tải sản phẩm");
     } else {
-      setProducts(data);
+      let list = data || [];
+
+      // Filter by search
+      if (search.trim() !== "") {
+        const q = search.trim().toLowerCase();
+        list = list.filter((p) => (p.TenSanPham || "").toLowerCase().includes(q));
+      }
+
+      // Filter by type
+      if (selectedTypeFilter !== "ALL") {
+        list = list.filter((p) => String(p.IDTypeProducts) === String(selectedTypeFilter));
+      }
+
+      setProducts(list);
     }
   };
 
   useEffect(() => {
+    fetchTypes();
     fetchProducts();
-  }, [search]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Re-fetch products when search or filter change
+  useEffect(() => {
+    fetchProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, selectedTypeFilter]);
 
   // ===== Upload ảnh
   const uploadImage = async (file) => {
@@ -73,14 +106,11 @@ const Product = () => {
       return null;
     }
 
-    const { data: urlData } = supabase.storage
-      .from(BUCKET)
-      .getPublicUrl(fileName);
-
+    const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(fileName);
     return urlData.publicUrl;
   };
 
-  // ===== ADD / EDIT
+  // ===== ADD / EDIT PRODUCT
   const handleFinish = async (values) => {
     let imageUrl = editingProduct?.HinhAnh ?? null;
 
@@ -88,28 +118,22 @@ const Product = () => {
       imageUrl = await uploadImage(imageFile);
     }
 
+    // Build payload including IDTypeProducts (int8)
+    const payload = {
+      TenSanPham: values.TenSanPham,
+      MoTa: values.MoTa,
+      GIA: values.GIA,
+      HinhAnh: imageUrl,
+      IDTypeProducts: values.IDTypeProducts ?? null,
+    };
+
     if (editingProduct) {
-      const { error } = await supabase
-        .from("Products")
-        .update({
-          TenSanPham: values.TenSanPham,
-          MoTa: values.MoTa,
-          GIA: values.GIA,
-          HinhAnh: imageUrl,
-        })
-        .eq("id", editingProduct.id);
+      const { error } = await supabase.from("Products").update(payload).eq("id", editingProduct.id);
 
       if (!error) message.success("Cập nhật thành công!");
       else message.error("Cập nhật thất bại!");
     } else {
-      const { error } = await supabase.from("Products").insert([
-        {
-          TenSanPham: values.TenSanPham,
-          MoTa: values.MoTa,
-          GIA: values.GIA,
-          HinhAnh: imageUrl,
-        },
-      ]);
+      const { error } = await supabase.from("Products").insert([payload]);
 
       if (!error) message.success("Thêm thành công!");
       else message.error("Thêm thất bại!");
@@ -122,7 +146,7 @@ const Product = () => {
     fetchProducts();
   };
 
-  // ===== DELETE
+  // ===== DELETE PRODUCT
   const handleDelete = async (id) => {
     const { error } = await supabase.from("Products").delete().eq("id", id);
 
@@ -132,43 +156,93 @@ const Product = () => {
     } else message.error("Xóa thất bại!");
   };
 
+  // ===== ADD TYPE (TypeProducts)
+  const handleAddType = async (values) => {
+    const payload = {
+      TenLoai: values.TenLoai,
+      // bạn có thể thêm created_at nếu muốn: created_at: new Date()
+    };
+
+    const { error } = await supabase.from("TypeProducts").insert([payload]);
+    if (!error) {
+      message.success("Thêm loại thành công!");
+      setOpenTypeModal(false);
+      formType.resetFields();
+      fetchTypes();
+    } else {
+      message.error("Thêm loại thất bại!");
+    }
+  };
+
+  // ===== UPLOAD props
   const uploadProps = {
     beforeUpload: (file) => {
       setImageFile(file);
-      return false;
+      return false; // prevent auto upload
     },
     fileList: imageFile ? [imageFile] : [],
     onRemove: () => setImageFile(null),
   };
 
+  // Helper: find type name by id
+  const getTypeName = (id) => {
+    const t = types.find((x) => String(x.id) === String(id));
+    return t ? t.TenLoai : "Không có loại";
+  };
+
   return (
     <>
-      {/* Header */}
-      <div className="product-header">
+      {/* Header: search + type select + add type + add product */}
+      <div className="product-header" style={{ display: "flex", gap: 12, alignItems: "center" }}>
         <Input
           placeholder="Tìm theo tên..."
           prefix={<SearchOutlined />}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="search-input"
+          style={{ width: 280 }}
         />
 
-        <Button
-          icon={<PlusOutlined />}
-          onClick={() => {
-            setEditingProduct(null);
-            form.resetFields();
-            setImageFile(null);
-            setOpen(true);
-          }}
-          className="add-button"
+        <Select
+          value={selectedTypeFilter}
+          onChange={(val) => setSelectedTypeFilter(val)}
+          style={{ width: 220 }}
         >
-          Thêm mới
+          <Option value="ALL">— Xem tất cả loại —</Option>
+          {types.map((t) => (
+            <Option key={t.id} value={String(t.id)}>
+              {t.TenLoai}
+            </Option>
+          ))}
+        </Select>
+
+        <Button
+          onClick={() => setOpenTypeModal(true)}
+          icon={<PlusOutlined />}
+          type="default"
+        >
+          Thêm loại
         </Button>
+
+        <div style={{ marginLeft: "auto" }}>
+          <Button
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setEditingProduct(null);
+              form.resetFields();
+              setImageFile(null);
+              setOpen(true);
+            }}
+            className="add-button"
+            type="default"
+          >
+            Thêm sản phẩm
+          </Button>
+        </div>
       </div>
 
       {/* GRID */}
-      <Row gutter={[16, 16]}>
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         {products.map((item) => (
           <Col xs={24} sm={12} md={8} lg={6} key={item.id}>
             <Card
@@ -177,10 +251,7 @@ const Product = () => {
               cover={
                 <Image
                   alt={item.TenSanPham}
-                  src={
-                    item.HinhAnh ||
-                    "https://via.placeholder.com/300x200?text=No+Image"
-                  }
+                  src={item.HinhAnh || "https://via.placeholder.com/300x200?text=No+Image"}
                   height={220}
                   className="card-img"
                   preview={{
@@ -193,8 +264,12 @@ const Product = () => {
                 {item.TenSanPham}
               </Title>
 
-              <p className="font-bold text-red-600 mb-3">
-                {item.GIA?.toLocaleString()} VND
+              <p style={{ fontWeight: 700, color: "#d0021b", marginBottom: 8 }}>
+                {item.GIA?.toLocaleString?.()} VND
+              </p>
+
+              <p style={{ marginBottom: 12, color: "#666" }}>
+                Loại: <strong>{getTypeName(item.IDTypeProducts)}</strong>
               </p>
 
               <Space>
@@ -212,19 +287,20 @@ const Product = () => {
                   onClick={() => {
                     setEditingProduct(item);
                     setImageFile(null);
-                    form.setFieldsValue({ ...item });
+                    // map fields into form; ensure IDTypeProducts present
+                    form.setFieldsValue({
+                      TenSanPham: item.TenSanPham,
+                      MoTa: item.MoTa,
+                      GIA: item.GIA,
+                      IDTypeProducts: item.IDTypeProducts ?? null,
+                    });
                     setOpen(true);
                   }}
                 />
 
                 {/* DOWNLOAD */}
                 {item.HinhAnh && (
-                  <a
-                    href={item.HinhAnh}
-                    download
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href={item.HinhAnh} download target="_blank" rel="noopener noreferrer">
                     <Button icon={<DownloadOutlined />} />
                   </a>
                 )}
@@ -243,7 +319,7 @@ const Product = () => {
         ))}
       </Row>
 
-      {/* MODAL ADD / EDIT */}
+      {/* MODAL ADD / EDIT PRODUCT */}
       <Modal
         title={editingProduct ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm"}
         open={open}
@@ -278,11 +354,24 @@ const Product = () => {
             <InputNumber
               min={0}
               style={{ width: "100%" }}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
+              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
               parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
             />
+          </Form.Item>
+
+          <Form.Item label="Loại sản phẩm" name="IDTypeProducts">
+            <Select
+              placeholder="Chọn loại (hoặc để trống)"
+              allowClear
+              showSearch
+              optionFilterProp="children"
+            >
+              {types.map((t) => (
+                <Option key={t.id} value={t.id}>
+                  {t.TenLoai}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
 
           <Form.Item label="Hình ảnh">
@@ -304,6 +393,29 @@ const Product = () => {
                 <span style={{ marginLeft: 8, color: "#888" }}>Ảnh hiện tại</span>
               </div>
             )}
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* MODAL ADD TYPE */}
+      <Modal
+        title="Thêm loại sản phẩm"
+        open={openTypeModal}
+        onCancel={() => {
+          setOpenTypeModal(false);
+          formType.resetFields();
+        }}
+        onOk={() => formType.submit()}
+        okText="Lưu"
+        cancelText="Hủy"
+      >
+        <Form form={formType} layout="vertical" onFinish={handleAddType}>
+          <Form.Item
+            label="Tên loại"
+            name="TenLoai"
+            rules={[{ required: true, message: "Vui lòng nhập tên loại" }]}
+          >
+            <Input />
           </Form.Item>
         </Form>
       </Modal>
